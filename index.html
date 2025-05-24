@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual do Módulo Super365 Manager</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Source+Code+Pro:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #121212; /* Fundo principal mais escuro */
+            --primary-color: #1e1e1e; /* Cor base para containers */
+            --secondary-color: #282828; /* Cor secundária, um pouco mais clara */
+            --accent-color: #007bff; /* Azul como cor de destaque */
+            --text-color: #e0e0e0;
+            --code-bg: #0a0a0a; /* Fundo do código bem escuro */
+            --code-text: #d4d4d4;
+            --border-color: #3a3a3a; /* Borda mais sutil */
+            --link-color: #61dafb; /* Azul claro para links */
+            --hover-color: #88c0d0;
+            --summary-bg: #333;
+            --summary-hover: #444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: var(--primary-color);
+            border-radius: 8px;
+            box-shadow: 0 0 35px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            display: flex;
+            border: 1px solid var(--border-color);
+        }
+
+        nav {
+            background-color: #0f0f0f;
+            width: 280px;
+            padding: 25px;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+
+        nav h2 {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        nav ul {
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-bottom: 12px;
+        }
+
+        nav ul li a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-size: 0.98em;
+            transition: color 0.3s ease, background-color 0.3s ease, padding-left 0.3s ease;
+            display: block;
+            padding: 8px 15px;
+            border-radius: 4px;
+        }
+
+        nav ul li a:hover,
+        nav ul li a.active {
+            color: white;
+            background-color: var(--accent-color);
+            padding-left: 20px;
+        }
+
+        main {
+            padding: 30px 40px;
+            width: calc(100% - 280px);
+            overflow-y: auto;
+            height: 100vh;
+        }
+
+        header {
+            background: var(--primary-color);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent-color);
+            margin-bottom: 35px;
+            border-radius: 0;
+        }
+
+        header h1 {
+            font-size: 2.3em;
+            margin-bottom: 10px;
+            color: #f5f5f5;
+        }
+
+        header p {
+            font-size: 1.1em;
+            font-style: italic;
+            color: var(--text-color);
+        }
+
+        section {
+            margin-bottom: 45px;
+            padding: 30px;
+            background-color: var(--secondary-color);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            color: var(--accent-color);
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            font-size: 1.9em;
+        }
+
+        h3 {
+            color: var(--link-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+
+        p, ul, li {
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        ul {
+            list-style: disc;
+            margin-left: 25px;
+        }
+
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: var(--code-bg);
+            color: var(--accent-color);
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            border: 1px solid var(--border-color);
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            border: none;
+            font-size: 0.95em;
+            white-space: pre;
+        }
+
+        .warning {
+            background-color: #443c30;
+            border-left: 5px solid #ffa500;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #ffa500;
+        }
+
+        details {
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        summary {
+            background-color: var(--summary-bg);
+            color: var(--link-color);
+            cursor: pointer;
+            padding: 10px 15px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            list-style: none;
+            position: relative;
+            padding-left: 35px;
+        }
+
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        
+        summary::before {
+            content: '▶';
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: transform 0.2s ease-in-out;
+            color: var(--accent-color);
+        }
+
+        details[open] summary::before {
+             transform: translateY(-50%) rotate(90deg);
+        }
+
+        summary:hover {
+            background-color: var(--summary-hover);
+        }
+
+        details[open] summary {
+             background-color: var(--accent-color);
+             color: white;
+        }
+        
+        details[open] summary::before {
+            color: white;
+        }
+
+        details pre {
+            border: none;
+            box-shadow: none;
+            border-top: 1px solid var(--border-color);
+            margin-top: 0;
+            border-radius: 0 0 5px 5px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--primary-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 6px;
+            border: 2px solid var(--primary-color);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--hover-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <nav>
+            <h2>Navegação</h2>
+            <ul>
+                <li><a href="#introducao">Introdução</a></li>
+                <li><a href="#pre-requisitos">Pré-Requisitos</a></li>
+                <li><a href="#instalacao">Instalação e Conexão</a></li>
+                <li><a href="#usuarios">Usuários (Graph)</a></li>
+                <li><a href="#licencas">Licenças (Graph)</a></li>
+                <li><a href="#grupos">Grupos (Graph)</a></li>
+                <li><a href="#teams">Teams (Graph)</a></li>
+                <li><a href="#mailboxes">Caixas de Correio (ExO)</a></li>
+                <li><a href="#permissoes">Permissões (ExO)</a></li>
+                <li><a href="#dist-contatos">Grupos & Contatos (ExO)</a></li>
+                <li><a href="#fluxo-email">Fluxo de Email (ExO)</a></li>
+                <li><a href="#relatorios">Relatórios e Auditoria</a></li>
+                <li><a href="#exemplos">Exemplos de Uso</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <header>
+                <h1>Módulo PowerShell Super365 Manager</h1>
+                <p>Seu canivete suíço para administração do Microsoft 365.</p>
+            </header>
+
+            <section id="introducao">
+                <h2>Introdução</h2>
+                <p>O Módulo Super365 Manager é uma ferramenta poderosa e abrangente projetada para simplificar e automatizar a administração do Microsoft 365. Ele consolida uma vasta gama de funções, interagindo tanto com o <strong>Microsoft Graph</strong> quanto com o <strong>Exchange Online</strong>, em um único módulo PowerShell.</p>
+                <div class="warning">
+                    <strong>Aviso:</strong> Use com cuidado. Teste em ambiente seguro antes de usar em produção. Requer permissões de Administrador.
+                </div>
+            </section>
+
+            <section id="pre-requisitos">
+                <h2>Pré-Requisitos</h2>
+                <ul>
+                    <li>PowerShell 5.1+</li>
+                    <li>Conexão com a Internet</li>
+                    <li>Política de Execução: <code>RemoteSigned</code> (<code>Set-ExecutionPolicy RemoteSigned -Force</code>)</li>
+                    <li>Permissões Administrativas no M365</li>
+                </ul>
+            </section>
+
+            <section id="instalacao">
+                <h2>Instalação e Conexão</h2>
+                <p>O módulo tenta instalar <code>ExchangeOnlineManagement</code> e <code>Microsoft.Graph</code> automaticamente.</p>
+                
+                <h3><code>Connect-Super365Services</code></h3>
+                <p>Inicia a conexão.</p>
+                <pre><code>Connect-Super365Services</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Connect-Super365Services {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$false)]
+        [String] $UserPrincipalName,
+        [Parameter(Mandatory=$false)]
+        [String[]] $GraphScopes = @(
+            "User.ReadWrite.All", "Group.ReadWrite.All", "Directory.ReadWrite.All",
+            "MailboxSettings.ReadWrite", "Mail.ReadWrite", "Mail.Send",
+            "Reports.Read.All", "AuditLog.Read.All", "Policy.ReadWrite.All",
+            "DeviceManagementManagedDevices.ReadWrite.All", "Team.ReadBasic.All", "TeamMember.ReadWrite.All",
+            "TeamSettings.ReadWrite.All", "Channel.ReadWrite.All", "TeamsApp.ReadWrite.All",
+            "RoleManagement.ReadWrite.Directory", "Application.ReadWrite.All", "ServiceHealth.Read.All",
+            "LicenseAssignment.ReadWrite.All", "Chat.ReadWrite.All", "Sites.ReadWrite.All",
+            "UserAuthenticationMethod.ReadWrite.All" # Para MFA
+        )
+    )
+    Write-Host "--- Iniciando Conexão Manager ---" -ForegroundColor Cyan
+    Write-Host "[Passo 1/3] Verificando e Instalando Módulos Essenciais..." -ForegroundColor Yellow
+    Install-RequiredModule -ModuleName "ExchangeOnlineManagement"
+    Install-RequiredModule -ModuleName "Microsoft.Graph"
+    Write-Host "[Passo 2/3] Conectando ao Exchange Online..." -ForegroundColor Yellow
+    try {
+        Get-PSSession | Where-Object { $_.ConfigurationName -eq 'Microsoft.Exchange' } | Remove-PSSession -Confirm:$false -ErrorAction SilentlyContinue
+        if ($PSBoundParameters.ContainsKey('UserPrincipalName')) {
+            Connect-ExchangeOnline -UserPrincipalName $UserPrincipalName -ShowProgress $true
+        } else {
+            Connect-ExchangeOnline -ShowProgress $true
+        }
+        Write-Host "=> Conectado ao Exchange Online com sucesso." -ForegroundColor Green
+    } catch { Write-Error "Falha ao conectar ao Exchange Online: $_"; return }
+    Write-Host "[Passo 3/3] Conectando ao Microsoft Graph..." -ForegroundColor Yellow
+    try {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue
+        Connect-MgGraph -Scopes $GraphScopes
+        $context = Get-MgContext
+        Write-Host "=> Conectado ao Microsoft Graph como $($context.Account)." -ForegroundColor Green
+    } catch { Write-Error "Falha ao conectar ao Microsoft Graph: $_"; return }
+    Write-Host "--- Conexão aos Serviços M365 Concluída ---" -ForegroundColor Cyan
+}
+                </code></pre></details>
+
+                <h3><code>Disconnect-Super365Services</code></h3>
+                <p>Encerra as sessões.</p>
+                <pre><code>Disconnect-Super365Services</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Disconnect-Super365Services {
+    [CmdletBinding()]
+    Param ()
+    Write-Host "Desconectando dos serviços M365..." -ForegroundColor Yellow
+    try {
+        Get-PSSession | Where-Object { $_.ConfigurationName -eq 'Microsoft.Exchange' } | Remove-PSSession -Confirm:$false -ErrorAction SilentlyContinue
+        Write-Host "- Sessão Exchange Online encerrada." -ForegroundColor Gray
+    } catch { Write-Warning "Não foi possível desconectar do Exchange Online (talvez já estivesse desconectado)." }
+    try {
+        Disconnect-MgGraph -ErrorAction SilentlyContinue
+        Write-Host "- Sessão Microsoft Graph encerrada." -ForegroundColor Gray
+    } catch { Write-Warning "Não foi possível desconectar do Microsoft Graph (talvez já estivesse desconectado)." }
+    Write-Host "Desconexão concluída." -ForegroundColor Green
+}
+                </code></pre></details>
+            </section>
+
+            <section id="usuarios">
+                <h2>Usuários (Microsoft Graph)</h2>
+                
+                <h3><code>Get-S365User</code></h3>
+                <p>Busca usuários.</p>
+                <pre><code>Get-S365User -Identity "usuario@dominio.com"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365User {
+    [CmdletBinding()]
+    Param (
+        [String] $Identity,
+        [Switch] $All,
+        [String] $Filter,
+        [String[]] $Select = @("Id", "DisplayName", "UserPrincipalName", "Mail", "JobTitle", "Department", "AccountEnabled", "CreatedDateTime", "LastPasswordChangeDateTime", "SignInActivity", "UsageLocation", "Manager")
+    )
+    try {
+        $params = @{ Select = $Select }
+        if ($All) { Get-MgUser @params -All }
+        elseif ($Filter) { Get-MgUser @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar } # Adicionado ConsistencyLevel para filtros avançados
+        elseif ($Identity) { Get-MgUser @params -UserId $Identity }
+        else { Write-Warning "Especifique -Identity, -Filter ou -All." }
+    } catch { Write-Error "Erro ao buscar usuário(s): $_" }
+}
+                </code></pre></details>
+
+                <h3><code>New-S365User</code></h3>
+                <p>Cria um novo usuário.</p>
+                <pre><code>New-S365User -UserPrincipalName "novo@dominio.com" -DisplayName "Novo" -MailNickname "novo" -Password $senha -UsageLocation "BR"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function New-S365User {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName,
+        [Parameter(Mandatory=$true)][String] $DisplayName,
+        [Parameter(Mandatory=$true)][String] $MailNickname,
+        [Parameter(Mandatory=$true)][System.Security.SecureString] $Password,
+        [Parameter(Mandatory=$true)][String] $UsageLocation, # Ex: "BR", "US"
+        [String] $GivenName,
+        [String] $Surname,
+        [String] $JobTitle,
+        [String] $Department,
+        [Switch] $ForceChangePasswordNextSignIn = $true,
+        [Switch] $AccountEnabled = $true
+    )
+    $params = @{
+        UserPrincipalName = $UserPrincipalName
+        DisplayName = $DisplayName
+        MailNickname = $MailNickname
+        PasswordProfile = @{ ForceChangePasswordNextSignIn = $ForceChangePasswordNextSignIn; Password = $Password }
+        AccountEnabled = $AccountEnabled
+        UsageLocation = $UsageLocation
+    }
+    if ($GivenName) { $params.Add("GivenName", $GivenName) }
+    if ($Surname) { $params.Add("Surname", $Surname) }
+    if ($JobTitle) { $params.Add("JobTitle", $JobTitle) }
+    if ($Department) { $params.Add("Department", $Department) }
+    try {
+        $newUser = New-MgUser -BodyParameter $params
+        Write-Host "Usuário '$UserPrincipalName' (ID: $($newUser.Id)) criado com sucesso." -ForegroundColor Green
+        return $newUser
+    } catch { Write-Error "Erro ao criar usuário: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Set-S365User</code></h3>
+                <p>Modifica um usuário.</p>
+                <pre><code>Set-S365User -UserPrincipalName "novo@dominio.com" -JobTitle "Analista"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Set-S365User {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName,
+        [String] $JobTitle,
+        [String] $Department,
+        [String] $OfficeLocation,
+        [String] $MobilePhone,
+        [String] $ManagerUPN,
+        [String] $UsageLocation,
+        [Switch] $EnableAccount,
+        [Switch] $DisableAccount
+    )
+    $params = @{}
+    if ($JobTitle) { $params.Add("JobTitle", $JobTitle) }
+    if ($Department) { $params.Add("Department", $Department) }
+    if ($OfficeLocation) { $params.Add("OfficeLocation", $OfficeLocation) }
+    if ($MobilePhone) { $params.Add("MobilePhone", $MobilePhone) }
+    if ($UsageLocation) { $params.Add("UsageLocation", $UsageLocation) }
+    if ($PSBoundParameters.ContainsKey('EnableAccount')) { $params.Add("AccountEnabled", $true) }
+    if ($PSBoundParameters.ContainsKey('DisableAccount')) { $params.Add("AccountEnabled", $false) }
+    try {
+        if ($params.Count -gt 0) {
+            Update-MgUser -UserId $UserPrincipalName -BodyParameter $params
+            Write-Host "Propriedades atualizadas para $UserPrincipalName." -ForegroundColor Green
+        }
+        if ($ManagerUPN) {
+            $manager = Get-S365User -Identity $ManagerUPN
+            if ($manager) {
+                Set-MgUserManagerByRef -UserId $UserPrincipalName -AdditionalProperties @{"@odata.id" = "https://graph.microsoft.com/v1.0/users/$($manager.Id)"}
+                Write-Host "Gerente '$ManagerUPN' definido para $UserPrincipalName." -ForegroundColor Green
+            } else { Write-Warning "Gerente '$ManagerUPN' não encontrado." }
+        }
+    } catch { Write-Error "Erro ao atualizar usuário '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Remove-S365User</code></h3>
+                <p>Move um usuário para a lixeira.</p>
+                <pre><code>Remove-S365User -UserPrincipalName "antigo@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Remove-S365User {
+    [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')]
+    Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName )
+    try {
+        if ($PSCmdlet.ShouldProcess($UserPrincipalName, "Remover Usuário (será movido para Lixeira)")) {
+            Remove-MgUser -UserId $UserPrincipalName
+            Write-Host "Usuário '$UserPrincipalName' movido para a lixeira." -ForegroundColor Green
+        }
+    } catch { Write-Error "Erro ao remover usuário '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Restore-S365DeletedUser</code></h3>
+                <p>Restaura um usuário da lixeira.</p>
+                <pre><code>Restore-S365DeletedUser -UserId "ID_DO_USUARIO"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Restore-S365DeletedUser {
+     [CmdletBinding()]
+    Param ( [Parameter(Mandatory=$true)][String] $UserId ) # ID do usuário, não UPN
+    try {
+        Restore-MgDirectoryDeletedItem -DirectoryObjectId $UserId
+        Write-Host "Usuário com ID '$UserId' restaurado com sucesso." -ForegroundColor Green
+    } catch { Write-Error "Erro ao restaurar usuário: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Get-S365DeletedUser</code></h3>
+                <p>Lista usuários na lixeira.</p>
+                <pre><code>Get-S365DeletedUser</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365DeletedUser {
+     [CmdletBinding()]
+    Param ()
+    try { Get-MgDirectoryDeletedItem -DirectoryObjectId "microsoft.graph.user" | Select-Object Id, DisplayName, UserPrincipalName, DeletedDateTime }
+    catch { Write-Error "Erro ao buscar usuários excluídos: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Reset-S365UserPassword</code></h3>
+                <p>Redefine a senha.</p>
+                <pre><code>Reset-S365UserPassword -UserPrincipalName "user@dominio.com" -NewPassword $senha</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Reset-S365UserPassword {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName,
+        [Parameter(Mandatory=$true)][System.Security.SecureString] $NewPassword,
+        [Switch] $ForceChangePasswordNextSignIn = $true
+    )
+    $passwordProfile = @{
+        ForceChangePasswordNextSignIn = $ForceChangePasswordNextSignIn
+        Password = $NewPassword
+    }
+    try {
+        Update-MgUser -UserId $UserPrincipalName -PasswordProfile $passwordProfile
+        Write-Host "Senha redefinida para '$UserPrincipalName'." -ForegroundColor Green
+    } catch { Write-Error "Erro ao redefinir senha: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Get-S365MfaStatus</code></h3>
+                <p>Verifica status do MFA.</p>
+                <pre><code>Get-S365MfaStatus -UserPrincipalName "user@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365MfaStatus {
+    [CmdletBinding()]
+    Param ([Parameter(Mandatory=$true)][String] $UserPrincipalName)
+    Write-Host "Verificando métodos de autenticação para $UserPrincipalName..." -ForegroundColor Yellow
+    try {
+        $methods = Get-MgUserAuthenticationMethod -UserId $UserPrincipalName
+        if ($methods) {
+            Write-Host "Métodos registrados:" -ForegroundColor Green
+            $methods | ForEach-Object {
+                $type = $_.AdditionalProperties.'@odata.type'.Split('.')[-1]
+                Write-Host "- Tipo: $type"
+            }
+            if (($methods | Where-Object { $_.AdditionalProperties.'@odata.type' -like "*PhoneAuthenticationMethod*" -or $_.AdditionalProperties.'@odata.type' -like "*MicrosoftAuthenticatorAuthenticationMethod*" })) {
+                Write-Host "=> Status: MFA provavelmente ATIVO (Método forte registrado)." -ForegroundColor Green
+            } else {
+                Write-Host "=> Status: MFA provavelmente INATIVO (Nenhum método forte registrado)." -ForegroundColor Yellow
+            }
+        } else {
+            Write-Host "=> Status: NENHUM método de autenticação registrado." -ForegroundColor Red
+        }
+    } catch { Write-Error "Erro ao buscar status MFA para '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+            </section>
+
+             <section id="licencas">
+                <h2>Licenças (Microsoft Graph)</h2>
+                <h3><code>Get-S365AvailableSkus</code></h3>
+                <p>Lista SKUs.</p>
+                <pre><code>Get-S365AvailableSkus</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365AvailableSkus {
+    [CmdletBinding()]
+    Param ()
+    try { Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber, ConsumedUnits, PrepaidUnits } 
+    catch { Write-Error "Erro ao buscar SKUs: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Get-S365UserLicense</code></h3>
+                <p>Mostra licenças.</p>
+                <pre><code>Get-S365UserLicense -UserPrincipalName "usuario@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365UserLicense {
+    [CmdletBinding()]
+    Param ([Parameter(Mandatory=$true)][String] $UserPrincipalName)
+    try { Get-MgUserLicenseDetail -UserId $UserPrincipalName | Select-Object SkuPartNumber, ServicePlans }
+    catch { Write-Error "Erro ao buscar licenças de '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Set-S365UserLicense</code></h3>
+                <p>Adiciona/remove licenças.</p>
+                <pre><code>Set-S365UserLicense -UserPrincipalName "usuario@dominio.com" -AddSkuIds $skuId</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Set-S365UserLicense {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName,
+        [String[]] $AddSkuIds,
+        [String[]] $RemoveSkuIds
+    )
+    try {
+        $user = Get-S365User -Identity $UserPrincipalName -Select UsageLocation
+        if (-not $user.UsageLocation) {
+            Write-Error "Usuário '$UserPrincipalName' não tem UsageLocation. Defina-o antes."
+            return
+        }
+        $addLicensesObject = @()
+        if ($AddSkuIds) { $addLicensesObject = $AddSkuIds | ForEach-Object { @{ SkuId = $_ } } }
+        $params = @{
+            UserId = $UserPrincipalName
+            AddLicenses = $addLicensesObject
+            RemoveLicenses = @($RemoveSkuIds)
+        }
+        Set-MgUserLicense @params
+        Write-Host "Licenças atualizadas para '$UserPrincipalName'." -ForegroundColor Green
+    } catch { Write-Error "Erro ao atualizar licenças para '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+             </section>
+
+             <section id="grupos">
+                <h2>Grupos (Microsoft Graph)</h2>
+                <h3><code>Get-S365Group</code></h3>
+                <p>Busca grupos.</p>
+                <pre><code>Get-S365Group -Identity "NomeDoGrupo"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365Group {
+    [CmdletBinding()]
+    Param (
+        [String] $Identity,
+        [Switch] $All,
+        [String] $Filter,
+        [String[]] $Select = @("Id", "DisplayName", "Mail", "GroupTypes", "SecurityEnabled", "MailEnabled", "Visibility", "Description")
+    )
+    try {
+        $params = @{ Select = $Select }
+        if ($All) { Get-MgGroup @params -All }
+        elseif ($Filter) { Get-MgGroup @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar }
+        elseif ($Identity) { Get-MgGroup @params -GroupId $Identity }
+        else { Write-Warning "Especifique -Identity, -Filter ou -All." }
+    } catch { Write-Error "Erro ao buscar grupo(s): $_" }
+}
+                </code></pre></details>
+
+                <h3><code>New-S365Group</code></h3>
+                <p>Cria grupo.</p>
+                <pre><code>New-S365Group -DisplayName "Grupo Teste" -MailNickname "grupoteste" -GroupType "M365"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function New-S365Group {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)][String] $DisplayName,
+        [Parameter(Mandatory=$true)][String] $MailNickname,
+        [Parameter(Mandatory=$true)][ValidateSet("M365", "Security")][String] $GroupType,
+        [String] $Description,
+        [String[]] $OwnersUPN,
+        [String[]] $MembersUPN,
+        [Switch] $MailEnabled = ($GroupType -eq "M365"),
+        [Switch] $SecurityEnabled = ($GroupType -eq "Security" -or $GroupType -eq "M365"),
+        [ValidateSet("Public", "Private")][String] $Visibility = "Private" # Para grupos M365
+    )
+    $params = @{
+        DisplayName = $DisplayName
+        MailNickname = $MailNickname
+        MailEnabled = $MailEnabled
+        SecurityEnabled = $SecurityEnabled
+        Description = $Description
+        GroupTypes = @(if ($GroupType -eq "M365") { "Unified" } else { })
+    }
+    if ($GroupType -eq "M365") { $params.Visibility = $Visibility }
+    try {
+        $newGroup = New-MgGroup -BodyParameter $params
+        Write-Host "Grupo '$DisplayName' (ID: $($newGroup.Id)) criado com sucesso." -ForegroundColor Green
+        if ($OwnersUPN) { $OwnersUPN | ForEach-Object { try { Add-S365GroupOwner -GroupId $newGroup.Id -UserPrincipalName $_ } catch { Write-Warning "Não foi possível adicionar '$_' como proprietário: $($_.Exception.Message)" } } }
+        if ($MembersUPN) { $MembersUPN | ForEach-Object { try { Add-S365GroupMember -GroupId $newGroup.Id -UserPrincipalName $_ } catch { Write-Warning "Não foi possível adicionar '$_' como membro: $($_.Exception.Message)" } } }
+        return $newGroup
+    } catch { Write-Error "Erro ao criar grupo: $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Add-S365GroupMember</code></h3>
+                <p>Adiciona membro.</p>
+                <pre><code>Add-S365GroupMember -GroupId "ID_DO_GRUPO" -UserPrincipalName "membro@dominio.com"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Add-S365GroupMember {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $GroupId,
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName
+    )
+    try {
+        $user = Get-S365User -Identity $UserPrincipalName
+        New-MgGroupMember -GroupId $GroupId -DirectoryObjectId $user.Id
+        Write-Host "Usuário '$UserPrincipalName' adicionado ao grupo '$GroupId'." -ForegroundColor Green
+    } catch { Write-Error "Erro ao adicionar membro '$UserPrincipalName' ao grupo '$GroupId': $_" }
+}
+                </code></pre></details>
+
+                <h3><code>Remove-S365GroupMember</code></h3>
+                <p>Remove membro.</p>
+                <pre><code>Remove-S365GroupMember -GroupId "ID_DO_GRUPO" -UserPrincipalName "membro@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Remove-S365GroupMember {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param (
+        [Parameter(Mandatory=$true)][String] $GroupId,
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName
+    )
+    try {
+        $user = Get-S365User -Identity $UserPrincipalName
+        if ($PSCmdlet.ShouldProcess("$UserPrincipalName from $GroupId", "Remover Membro do Grupo")) {
+            Remove-MgGroupMemberByRef -GroupId $GroupId -DirectoryObjectId $user.Id
+            Write-Host "Usuário '$UserPrincipalName' removido do grupo '$GroupId'." -ForegroundColor Green
+        }
+    } catch { Write-Error "Erro ao remover membro '$UserPrincipalName' do grupo '$GroupId': $_" }
+}
+                </code></pre></details>
+            </section>
+            
+            <section id="teams">
+                <h2>Teams (Microsoft Graph)</h2>
+                <h3><code>Get-S365Team</code></h3>
+                <p>Busca equipes.</p>
+                <pre><code>Get-S365Team -DisplayName "Nome da Equipe"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365Team {
+    [CmdletBinding()]
+    Param (
+        [String] $DisplayName,
+        [Switch] $All
+    )
+    try {
+        if ($DisplayName) { Get-MgTeam -Filter "DisplayName eq '$DisplayName'" }
+        elseif ($All) { Get-MgTeam -All }
+        else { Get-MgTeam }
+    } catch { Write-Error "Erro ao buscar Teams: $_" }
+}
+                </code></pre></details>
+                <h3><code>New-S365Team</code></h3>
+                <p>Cria equipe.</p>
+                <pre><code>New-S365Team -DisplayName "Nova Equipe"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function New-S365Team {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $DisplayName,
+        [String] $Description,
+        [String] $OwnerUPN # O dono que está criando (UPN)
+    )
+    try {
+        $template = "https://graph.microsoft.com/v1.0/teamsTemplates('standard')"
+        $params = @{
+            "template@odata.bind" = $template
+            DisplayName = $DisplayName
+            Description = $Description
+        }
+        $newTeam = New-MgTeam -BodyParameter $params
+        Write-Host "Team '$DisplayName' (ID: $($newTeam.Id)) criado. Aguarde a provisionação..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 15 
+        if ($OwnerUPN) {
+            try { Add-S365TeamMember -TeamId $newTeam.Id -UserPrincipalName $OwnerUPN -IsOwner }
+            catch { Write-Warning "Team criado, mas falha ao adicionar '$OwnerUPN' como proprietário inicial. Tente adicioná-lo manualmente: $_" }
+        } else { Write-Warning "Team criado sem proprietário inicial. Adicione um proprietário o mais rápido possível." }
+        Write-Host "Team '$DisplayName' provisionado (verifique se o proprietário foi adicionado)." -ForegroundColor Green
+        return $newTeam
+    } catch { Write-Error "Erro ao criar Team: $_" }
+}
+                </code></pre></details>
+                <h3><code>Add-S365TeamMember</code></h3>
+                <p>Adiciona membro.</p>
+                <pre><code>Add-S365TeamMember -TeamId "ID_DA_EQUIPE" -UserPrincipalName "membro@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Add-S365TeamMember {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $TeamId,
+        [Parameter(Mandatory=$true)][String] $UserPrincipalName,
+        [Switch] $IsOwner
+    )
+    try {
+        $user = Get-S365User -Identity $UserPrincipalName
+        $params = @{
+            "@odata.type" = "#microsoft.graph.aadUserConversationMember"
+            "user@odata.bind" = "https://graph.microsoft.com/v1.0/users('$($user.Id)')"
+            Roles = @(if ($IsOwner) { "owner" } else { "member" })
+        }
+        New-MgTeamMember -TeamId $TeamId -BodyParameter $params
+        $role = if ($IsOwner) { "Proprietário" } else { "Membro" }
+        Write-Host "Usuário '$UserPrincipalName' adicionado ao Team '$TeamId' como $role." -ForegroundColor Green
+    } catch { Write-Error "Erro ao adicionar membro '$UserPrincipalName' ao Team '$TeamId': $_" }
+}
+                </code></pre></details>
+            </section>
+            
+            <section id="mailboxes">
+                <h2>Caixas de Correio (Exchange Online)</h2>
+                <h3><code>Get-S365Mailbox</code></h3>
+                <p>Busca caixas.</p>
+                <pre><code>Get-S365Mailbox -Shared -All</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365Mailbox {
+    [CmdletBinding()]
+    Param (
+        [String] $Identity,
+        [Switch] $All,
+        [String] $Filter,
+        [Switch] $Shared,
+        [Switch] $Room,
+        [Switch] $Equipment,
+        [Switch] $Archive
+    )
+    try {
+        $params = @{}
+        if ($Shared) { $params.RecipientTypeDetails = "SharedMailbox" }
+        elseif ($Room) { $params.RecipientTypeDetails = "RoomMailbox" }
+        elseif ($Equipment) { $params.RecipientTypeDetails = "EquipmentMailbox" }
+        elseif ($Archive) { $params.Archive = $true }
+        if ($All) { Get-Mailbox @params -ResultSize Unlimited }
+        elseif ($Filter) { Get-Mailbox @params -Filter $Filter -ResultSize Unlimited }
+        elseif ($Identity) { Get-Mailbox @params -Identity $Identity }
+        else { Get-Mailbox @params -ResultSize 500 }
+    } catch { Write-Error "Erro ao buscar caixa(s) de correio: $_" }
+}
+                </code></pre></details>
+                <h3><code>Set-S365MailboxQuota</code></h3>
+                <p>Define cota.</p>
+                <pre><code>Set-S365MailboxQuota -Identity "user@dominio.com" -Quota "90GB"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Set-S365MailboxQuota {
+     [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $Identity,
+        [Parameter(Mandatory=$true)][String] $Quota # Ex: "50GB", "100GB"
+    )
+    try {
+        $quotaValue = [Microsoft.Exchange.Data.ByteQuantifiedSize]::Parse($Quota)
+        $warningQuota = ([Microsoft.Exchange.Data.ByteQuantifiedSize]($quotaValue.ToBytes() * 0.9)).ToString()
+        Set-Mailbox -Identity $Identity -ProhibitSendReceiveQuota $Quota -IssueWarningQuota $warningQuota
+        Write-Host "Quota da caixa de correio '$Identity' definida para $Quota (aviso em $warningQuota)." -ForegroundColor Green
+    } catch { Write-Error "Erro ao definir quota para '$Identity': $_" }
+}
+                </code></pre></details>
+                <h3><code>New-S365SharedMailbox</code></h3>
+                <p>Cria caixa compartilhada.</p>
+                <pre><code>New-S365SharedMailbox -Name "Financeiro Dept"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function New-S365SharedMailbox {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $Name,
+        [String] $Alias = ($Name -replace "\s", ""),
+        [String] $PrimarySmtpAddress = "$Alias@$(Get-AcceptedDomain | Where-Object { $_.IsDefault -eq $true } | Select-Object -ExpandProperty DomainName)"
+    )
+    try {
+        New-Mailbox -Shared -Name $Name -DisplayName $Name -Alias $Alias -PrimarySmtpAddress $PrimarySmtpAddress
+        Write-Host "Caixa compartilhada '$Name' ($PrimarySmtpAddress) criada com sucesso." -ForegroundColor Green
+    } catch { Write-Error "Erro ao criar caixa compartilhada '$Name': $_" }
+}
+                </code></pre></details>
+            </section>
+
+             <section id="permissoes">
+                <h2>Permissões (Exchange Online)</h2>
+                <h3><code>Add-S365MailboxPermission</code></h3>
+                <p>Adiciona Acesso Total.</p>
+                <pre><code>Add-S365MailboxPermission -Identity "caixa@dominio.com" -User "user@dominio.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Add-S365MailboxPermission {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $Identity,
+        [Parameter(Mandatory=$true)][String] $User,
+        [Parameter(Mandatory=$true)][ValidateSet("FullAccess", "ExternalAccount", "DeleteItem", "ReadPermission", "ChangePermission", "ChangeOwner")]$AccessRights = "FullAccess",
+        [Switch] $AutoMapping = $true
+    )
+    try {
+        Add-MailboxPermission -Identity $Identity -User $User -AccessRights $AccessRights -InheritanceType All -AutoMapping:$AutoMapping
+        Write-Host "Permissão '$AccessRights' concedida a '$User' na caixa '$Identity'." -ForegroundColor Green
+    } catch { Write-Error "Erro ao adicionar permissão '$AccessRights' a '$User' em '$Identity': $_" }
+}
+                </code></pre></details>
+                <h3><code>Add-S365RecipientPermission</code></h3>
+                <p>Adiciona Enviar Como.</p>
+                <pre><code>Add-S365RecipientPermission -Identity "caixa@dominio.com" -Trustee "user@dominio.com" -AccessRights SendAs</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Add-S365RecipientPermission {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $Identity,
+        [Parameter(Mandatory=$true)][String] $Trustee, # Usuário que recebe
+        [Parameter(Mandatory=$true)][ValidateSet("SendAs", "SendOnBehalf")]$AccessRights = "SendAs"
+    )
+    try {
+        if ($AccessRights -eq "SendAs") {
+            Add-RecipientPermission -Identity $Identity -Trustee $Trustee -AccessRights SendAs
+            Write-Host "Permissão 'SendAs' concedida a '$Trustee' em '$Identity'." -ForegroundColor Green
+        } elseif ($AccessRights -eq "SendOnBehalf") {
+            Set-Mailbox -Identity $Identity -GrantSendOnBehalfTo @{Add="$Trustee"}
+            Write-Host "Permissão 'SendOnBehalf' concedida a '$Trustee' em '$Identity'." -ForegroundColor Green
+        }
+    } catch { Write-Error "Erro ao adicionar permissão '$AccessRights' a '$Trustee' em '$Identity': $_" }
+}
+                </code></pre></details>
+                <h3><code>Add-S365MailboxFolderPermission</code></h3>
+                <p>Adiciona permissão de pasta.</p>
+                <pre><code>Add-S365MailboxFolderPermission -Identity "chefe@dominio.com" -User "sec@dominio.com" -AccessRights Editor</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Add-S365MailboxFolderPermission {
+     [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][String] $Identity,
+        [Parameter(Mandatory=$true)][String] $User,
+        [Parameter(Mandatory=$true)][ValidateSet("Owner", "PublishingEditor", "Editor", "PublishingAuthor", "Author", "NoneditingAuthor", "Reviewer", "Contributor", "AvailabilityOnly", "LimitedDetails")]$AccessRights,
+        [String] $FolderPath = "\Calendário"
+    )
+    try {
+        Add-MailboxFolderPermission -Identity "$($Identity):$FolderPath" -User $User -AccessRights $AccessRights
+        Write-Host "Permissão '$AccessRights' concedida a '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
+    } catch { Write-Error "Erro ao adicionar permissão de pasta '$AccessRights' a '$User' em '$Identity:$FolderPath': $_" }
+}
+                </code></pre></details>
+             </section>
+
+            <section id="fluxo-email">
+                <h2>Fluxo de Email (Exchange Online)</h2>
+                <h3><code>Start-S365MessageTrace</code></h3>
+                <p>Rastreia mensagens recentes.</p>
+                <pre><code>Start-S365MessageTrace -StartDate (Get-Date).AddDays(-1) -EndDate (Get-Date) -RecipientAddress "dest@dom.com"</code></pre>
+                <details><summary>Ver Código Fonte</summary><pre><code>
+Function Start-S365MessageTrace {
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)][DateTime] $StartDate,
+        [Parameter(Mandatory=$true)][DateTime] $EndDate,
+        [String] $SenderAddress,
+        [String] $RecipientAddress,
+        [String] $Subject,
+        [ValidateSet("Pending", "Failed", "Delivered", "Expanded", "Quarantined", "FilteredAsSpam", "GettingStatus")] $Status,
+        [String] $MessageId
+    )
+    Write-Host "Iniciando rastreamento de mensagens (últimos 10 dias)..." -ForegroundColor Yellow
+    $params = @{ StartDate = $StartDate; EndDate = $EndDate }
+    if ($SenderAddress) { $params.SenderAddress = $SenderAddress }
+    if ($RecipientAddress) { $params.RecipientAddress = $RecipientAddress }
+    if ($Subject) { $params.Subject = $Subject }
+    if ($PSBoundParameters.ContainsKey('Status')) { $params.Status = $Status }
+    if ($MessageId) { $params.MessageId = $MessageId }
+    try {
+        Get-MessageTrace @params | Select-Object Received, SenderAddress, RecipientAddress, Subject, Status, MessageId, Size, FromIP
+    } catch { Write-Error "Erro ao buscar rastreamento de mensagens: $_. Para traces > 10 dias, use Start-HistoricalSearch." }
+}
+                </code></pre></details>
+            </section>
+             
+            <section id="relatorios">
+                <h2>Relatórios e Auditoria</h2>
+                <h3><code>Get-S365SignInActivity</code></h3>
+                <p>Obtém login.</p>
+                <pre><code>Get-S365SignInActivity -UserPrincipalName "user@dom.com"</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Get-S365SignInActivity {
+     [CmdletBinding()]
+    Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName )
+    try { Get-MgUser -UserId $UserPrincipalName -Property 'SignInActivity' | Select-Object -ExpandProperty 'SignInActivity' }
+    catch { Write-Error "Erro ao buscar atividade de login para '$UserPrincipalName': $_" }
+}
+                </code></pre></details>
+                <h3><code>Search-S365AuditLog</code></h3>
+                <p>Pesquisa Log de Auditoria.</p>
+                <pre><code>Search-S365AuditLog -StartDate (Get-Date).AddDays(-7) -EndDate (Get-Date) -Operations "Update user."</code></pre>
+                 <details><summary>Ver Código Fonte</summary><pre><code>
+Function Search-S365AuditLog {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)][DateTime] $StartDate,
+        [Parameter(Mandatory=$true)][DateTime] $EndDate,
+        [String] $UserIds,
+        [String] $Operations, # Ex: "MailboxLogin", "Update user."
+        [Int32] $ResultSize = 1000
+    )
+    Write-Host "Pesquisando Log de Auditoria Unificado (pode demorar)..." -ForegroundColor Yellow
+    try {
+        Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -UserIds $UserIds -Operations $Operations -ResultSize $ResultSize | Select-Object CreationDate, UserIds, Operations, AuditData | Sort-Object CreationDate -Descending
+    } catch { Write-Error "Erro ao pesquisar o log de auditoria: $_" }
+}
+                </code></pre></details>
+            </section>
+
+            <section id="exemplos">
+                <h2>Exemplos de Uso</h2>
+                <p>Abaixo estão alguns exemplos práticos.</p>
+                <pre><code>
+# Conectar
+Connect-Super365Services
+
+# Buscar um usuário
+Get-S365User -Identity "joao.silva@seudominio.com"
+
+# Atribuir uma licença E3
+$e3SkuId = (Get-S365AvailableSkus | Where { $_.SkuPartNumber -eq "ENTERPRISEPACK" }).SkuId
+Set-S365UserLicense -UserPrincipalName "ana.costa@seudominio.com" -AddSkuIds $e3SkuId
+
+# Desconectar
+Disconnect-Super365Services
+                </code></pre>
+            </section>
+
+        </main>
+    </div>
+    
+    <script>
+        // Smooth scroll for navigation links
+        document.querySelectorAll('nav a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+
+                if(targetElement) {
+                     document.querySelector('main').scrollTo({
+                        top: targetElement.offsetTop - 80, // Adjust offset for header/padding
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Add active class to nav link on scroll (basic version)
+        const main = document.querySelector('main');
+        const sections = document.querySelectorAll('main section');
+        const navLinks = document.querySelectorAll('nav a');
+
+        main.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if(main.scrollTop >= sectionTop - 100){
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if(link.getAttribute('href').includes(current)){
+                    link.classList.add('active');
+                }
+            })
+        });
+
+    </script>
+
+</body>
+</html>
