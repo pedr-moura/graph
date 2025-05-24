@@ -6,8 +6,8 @@
     Automatiza a verificação e instalação dos módulos necessários ('ExchangeOnlineManagement', 'Microsoft.Graph').
     Projetado para ser o mais auto-contido possível.
 .NOTES
-    Autor: Gemini AI (Gerado e Compilado)
-    Versão: 3.0 (Completa)
+    Autor: Pedro Moura
+    Versão: 3.1 (Bug Fix - Permissões de Pasta)
     Data: 24/05/2025
     Requerimentos: PowerShell 5.1+, Conexão com a Internet.
     Pré-Requisito Manual: A Política de Execução do PowerShell deve ser 'RemoteSigned' ou menos restritiva.
@@ -77,18 +77,18 @@ Function Connect-Super365Services {
         )
     )
 
-    Write-Host "--- Iniciando Conexão Manager ---" -ForegroundColor Cyan
+    Write-Host "--- Iniciando Conexão SuperAdmin365 ---" -ForegroundColor Cyan
 
     # Instalação/Verificação de Módulos
     Write-Host "[Passo 1/3] Verificando e Instalando Módulos Essenciais..." -ForegroundColor Yellow
     Install-RequiredModule -ModuleName "ExchangeOnlineManagement"
     Install-RequiredModule -ModuleName "Microsoft.Graph"
-    
+
     # Conexão com Exchange Online
     Write-Host "[Passo 2/3] Conectando ao Exchange Online..." -ForegroundColor Yellow
     try {
         Get-PSSession | Where-Object { $_.ConfigurationName -eq 'Microsoft.Exchange' } | Remove-PSSession -Confirm:$false -ErrorAction SilentlyContinue
-        
+
         if ($PSBoundParameters.ContainsKey('UserPrincipalName')) {
             Connect-ExchangeOnline -UserPrincipalName $UserPrincipalName -ShowProgress $true
         } else {
@@ -206,7 +206,7 @@ Function Set-S365User {
     if ($UsageLocation) { $params.Add("UsageLocation", $UsageLocation) }
     if ($PSBoundParameters.ContainsKey('EnableAccount')) { $params.Add("AccountEnabled", $true) }
     if ($PSBoundParameters.ContainsKey('DisableAccount')) { $params.Add("AccountEnabled", $false) }
-    
+
     try {
         if ($params.Count -gt 0) {
             Update-MgUser -UserId $UserPrincipalName -BodyParameter $params
@@ -348,13 +348,13 @@ Function Set-S365UserLicense {
 
         $addLicensesObject = @()
         if ($AddSkuIds) { $addLicensesObject = $AddSkuIds | ForEach-Object { @{ SkuId = $_ } } }
-        
+
         $params = @{
             UserId = $UserPrincipalName
             AddLicenses = $addLicensesObject
             RemoveLicenses = @($RemoveSkuIds)
         }
-        
+
         Set-MgUserLicense @params
         Write-Host "Licenças atualizadas para '$UserPrincipalName'." -ForegroundColor Green
     } catch { Write-Error "Erro ao atualizar licenças para '$UserPrincipalName': $_" }
@@ -516,12 +516,12 @@ Function New-S365Team {
             DisplayName = $DisplayName
             Description = $Description
         }
-        
+
         $newTeam = New-MgTeam -BodyParameter $params
         Write-Host "Team '$DisplayName' (ID: $($newTeam.Id)) criado. Aguarde a provisionação..." -ForegroundColor Yellow
-        
+
         # Aguarda um pouco e tenta adicionar o dono se fornecido
-        Start-Sleep -Seconds 15 
+        Start-Sleep -Seconds 15
 
         if ($OwnerUPN) {
             try {
@@ -796,7 +796,7 @@ Function Add-S365MailboxFolderPermission {
     try {
         Add-MailboxFolderPermission -Identity "$($Identity):$FolderPath" -User $User -AccessRights $AccessRights
         Write-Host "Permissão '$AccessRights' concedida a '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
-    } catch { Write-Error "Erro ao adicionar permissão de pasta '$AccessRights' a '$User' em '$Identity:$FolderPath': $_" }
+    } catch { Write-Error "Erro ao adicionar permissão de pasta '$AccessRights' a '$User' em '$($Identity):$FolderPath': $_" } # CORRIGIDO AQUI
 }
 
 Function Remove-S365MailboxFolderPermission {
@@ -811,7 +811,7 @@ Function Remove-S365MailboxFolderPermission {
             Remove-MailboxFolderPermission -Identity "$($Identity):$FolderPath" -User $User -Confirm:$false
             Write-Host "Permissões removidas de '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
         }
-    } catch { Write-Error "Erro ao remover permissão de pasta de '$User' em '$Identity:$FolderPath': $_" }
+    } catch { Write-Error "Erro ao remover permissão de pasta de '$User' em '$($Identity):$FolderPath': $_" } # CORRIGIDO AQUI
 }
 
 #endregion
@@ -972,7 +972,7 @@ Function Start-S365HistoricalMessageTrace {
 Function Get-S365HistoricalMessageTrace {
     [CmdletBinding()]
     Param(
-        [String] $JobId 
+        [String] $JobId
     )
     Write-Host "Buscando status de rastreamentos históricos..." -ForegroundColor Yellow
     try {
@@ -1004,11 +1004,14 @@ Function Get-S365LastLogonTime {
     try {
         Write-Host "Buscando estatísticas de todas as caixas. Isso pode levar bastante tempo..." -ForegroundColor Yellow
         $mailboxes = Get-Mailbox -ResultSize Unlimited -Filter {RecipientTypeDetails -ne "DiscoveryMailbox"}
-        $stats = $mailboxes | ForEach-Object { 
-            Write-Progress -Activity "Buscando Estatísticas" -Status "Processando: $($_.UserPrincipalName)"
-            Get-MailboxStatistics -Identity $_.UserPrincipalName -ErrorAction SilentlyContinue 
+        $i = 0
+        $total = $mailboxes.Count
+        $stats = $mailboxes | ForEach-Object {
+            $i++
+            Write-Progress -Activity "Buscando Estatísticas" -Status "Processando: $($_.UserPrincipalName) ($i de $total)" -PercentComplete ($i / $total * 100)
+            Get-MailboxStatistics -Identity $_.UserPrincipalName -ErrorAction SilentlyContinue
         }
-        
+
         if ($All) {
              $stats | Select-Object DisplayName, UserPrincipalName, LastLogonTime, TotalItemSize
         } else {
@@ -1036,7 +1039,7 @@ Function Search-S365AuditLog {
 
 #endregion
 
-#region Exemplos de Uso
+#region Exemplos de Uso (Descomente para usar)
 
 <#
 
@@ -1111,9 +1114,10 @@ Function Search-S365AuditLog {
 
 Write-Host ""
 Write-Host "*****************************************************" -ForegroundColor White -BackgroundColor DarkBlue
-Write-Host "*** Módulo Manager (v3.0) Carregado!   ***" -ForegroundColor White -BackgroundColor DarkBlue
+Write-Host "*** Módulo SuperAdmin365 (v3.1) Carregado!   ***" -ForegroundColor White -BackgroundColor DarkBlue
 Write-Host "*****************************************************" -ForegroundColor White -BackgroundColor DarkBlue
 Write-Host ""
 Write-Host "Use 'Connect-Super365Services' para iniciar a conexão." -ForegroundColor Cyan
-Write-Host "Descomente e use os exemplos no final do script para começar." -ForegroundColor Gray
+Write-Host "Lembre-se: SALVE este código como .ps1 e execute-o usando '. .\SuperAdmin365.ps1'." -ForegroundColor Yellow
+Write-Host "NÃO COLE o script diretamente no console." -ForegroundColor Red
 Write-Host "Use 'Disconnect-Super365Services' ao terminar." -ForegroundColor Yellow
