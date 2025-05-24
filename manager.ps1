@@ -7,7 +7,7 @@
     Projetado para ser o mais auto-contido possível.
 .NOTES
     Autor: Pedro Moura
-    Versão: 3.1 (Bug Fix - Permissões de Pasta)
+    Versão: 3.2 (Bug Fix - ShouldProcess e String Parsing)
     Data: 24/05/2025
     Requerimentos: PowerShell 5.1+, Conexão com a Internet.
     Pré-Requisito Manual: A Política de Execução do PowerShell deve ser 'RemoteSigned' ou menos restritiva.
@@ -796,7 +796,7 @@ Function Add-S365MailboxFolderPermission {
     try {
         Add-MailboxFolderPermission -Identity "$($Identity):$FolderPath" -User $User -AccessRights $AccessRights
         Write-Host "Permissão '$AccessRights' concedida a '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
-    } catch { Write-Error "Erro ao adicionar permissão de pasta '$AccessRights' a '$User' em '$($Identity):$FolderPath': $_" } # CORRIGIDO AQUI
+    } catch { Write-Error "Erro ao adicionar permissão de pasta '$AccessRights' a '$User' em '$($Identity):$FolderPath': $_" }
 }
 
 Function Remove-S365MailboxFolderPermission {
@@ -807,11 +807,12 @@ Function Remove-S365MailboxFolderPermission {
         [String] $FolderPath = "\Calendário"
     )
     try {
-        if ($PSCmdlet.ShouldProcess("$User on $Identity:$FolderPath", "Remover Permissão de Pasta")) {
+        # CORRIGIDO AQUI: Usando $($Identity) para ser mais explícito
+        if ($PSCmdlet.ShouldProcess("$User on $($Identity):$FolderPath", "Remover Permissão de Pasta")) {
             Remove-MailboxFolderPermission -Identity "$($Identity):$FolderPath" -User $User -Confirm:$false
             Write-Host "Permissões removidas de '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
         }
-    } catch { Write-Error "Erro ao remover permissão de pasta de '$User' em '$($Identity):$FolderPath': $_" } # CORRIGIDO AQUI
+    } catch { Write-Error "Erro ao remover permissão de pasta de '$User' em '$($Identity):$FolderPath': $_" }
 }
 
 #endregion
@@ -1091,6 +1092,7 @@ Function Search-S365AuditLog {
 # Add-S365MailboxPermission -Identity "compartilhada@seudominio.com" -User "usuario@seudominio.com" -AccessRights "FullAccess"
 # Add-S365RecipientPermission -Identity "compartilhada@seudominio.com" -Trustee "usuario@seudominio.com" -AccessRights "SendAs"
 # Add-S365MailboxFolderPermission -Identity "sala.reuniao@seudominio.com" -User "reservas@seudominio.com" -AccessRights "Editor" -FolderPath "\Calendário"
+# Remove-S365MailboxFolderPermission -Identity "sala.reuniao@seudominio.com" -User "reservas@seudominio.com" -FolderPath "\Calendário" -WhatIf
 
 # --- Exemplos de Fluxo de Email (Exchange) ---
 # Get-S365TransportRule
@@ -1114,7 +1116,7 @@ Function Search-S365AuditLog {
 
 Write-Host ""
 Write-Host "*****************************************************" -ForegroundColor White -BackgroundColor DarkBlue
-Write-Host "*** Módulo SuperAdmin365 (v3.1) Carregado!   ***" -ForegroundColor White -BackgroundColor DarkBlue
+Write-Host "*** Módulo SuperAdmin365 (v3.2) Carregado!   ***" -ForegroundColor White -BackgroundColor DarkBlue
 Write-Host "*****************************************************" -ForegroundColor White -BackgroundColor DarkBlue
 Write-Host ""
 Write-Host "Use 'Connect-Super365Services' para iniciar a conexão." -ForegroundColor Cyan
