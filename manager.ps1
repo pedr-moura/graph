@@ -1,8 +1,14 @@
 # =========================================================================
 #                    SuperAdmin365 TUI (Terminal User Interface)
-#                 Designed for iex (irm 'your_url_here')
-#                            Version: 4.0-TUI
+#                 Designed for iex (irm '-----.ps1')
+#                            Version: 4.2-TUI (Test Mode Added)
 # =========================================================================
+
+# --- INTERRUPTOR DE MODO DE TESTE ---
+# $true  = Modo de Teste (NÃO executa comandos M365, apenas simula a TUI)
+# $false = Modo de Produção (Executa comandos M365 reais)
+$Global:TestMode = $true
+# ------------------------------------
 
 $Global:ErrorActionPreference = "Stop"
 
@@ -12,13 +18,21 @@ $Global:IsGraphConnected = $false
 $Global:GraphUser = "N/A"
 
 # =========================================================================
-#                  CORE FUNCTIONS (Seu Script Original)
+#                  CORE FUNCTIONS (Com Lógica de Teste)
 # =========================================================================
 
 Function Install-RequiredModule {
     Param (
         [String]$ModuleName
     )
+    # --- MODO DE TESTE ---
+    if ($Global:TestMode) {
+        Write-Host "[TEST MODE] Módulo '$ModuleName': Verificando..." -ForegroundColor Gray
+        Write-Host "[TEST MODE] Módulo '$ModuleName' já está disponível (Simulado)." -ForegroundColor Green
+        return
+    }
+    # --- FIM MODO DE TESTE ---
+
     if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
         Write-Host "Módulo '$ModuleName' não encontrado. Tentando instalar via PSGallery..." -ForegroundColor Yellow
         try {
@@ -62,6 +76,20 @@ Function Connect-Super365Services {
             "UserAuthenticationMethod.ReadWrite.All"
         )
     )
+
+    # --- MODO DE TESTE ---
+    if ($Global:TestMode) {
+        Write-Host "`n--- [TEST MODE] Iniciando Conexão SuperAdmin365 (Simulada) ---" -ForegroundColor Gray
+        Write-Host "[TEST MODE] Módulos verificados." -ForegroundColor Gray
+        $Global:IsExchangeConnected = $true
+        $Global:IsGraphConnected = $true
+        $Global:GraphUser = if ($UserPrincipalName) { $UserPrincipalName } else { "test.user@mockdomain.com" }
+        Write-Host "=> [TEST MODE] Conectado ao Exchange Online (Simulado)." -ForegroundColor Green
+        Write-Host "=> [TEST MODE] Conectado ao Microsoft Graph como $($Global:GraphUser) (Simulado)." -ForegroundColor Green
+        Write-Host "--- [TEST MODE] Conexão Simulada Concluída ---" -ForegroundColor Gray
+        return
+    }
+    # --- FIM MODO DE TESTE ---
 
     Write-Host "`n--- Iniciando Conexão SuperAdmin365 ---" -ForegroundColor Cyan
     Write-Host "[Passo 1/3] Verificando e Instalando Módulos Essenciais..." -ForegroundColor Yellow
@@ -107,6 +135,17 @@ Function Connect-Super365Services {
 Function Disconnect-Super365Services {
     [CmdletBinding()]
     Param ()
+    # --- MODO DE TESTE ---
+    if ($Global:TestMode) {
+        Write-Host "[TEST MODE] Desconectando dos serviços M365 (Simulado)..." -ForegroundColor Gray
+        $Global:IsExchangeConnected = $false
+        $Global:IsGraphConnected = $false
+        $Global:GraphUser = "N/A"
+        Write-Host "[TEST MODE] Desconexão Simulada concluída." -ForegroundColor Green
+        return
+    }
+    # --- FIM MODO DE TESTE ---
+
     Write-Host "Desconectando dos serviços M365..." -ForegroundColor Yellow
     try {
         Get-PSSession | Where-Object { $_.ConfigurationName -eq 'Microsoft.Exchange' } | Remove-PSSession -Confirm:$false -ErrorAction SilentlyContinue
@@ -123,10 +162,9 @@ Function Disconnect-Super365Services {
 }
 
 # --- COLE TODAS AS SUAS OUTRAS FUNÇÕES S365 (Get-S365User, Set-S365User, etc.) AQUI ---
-# ...
-# ... (Coloque todas as 50+ funções aqui) ...
-# ...
-Function Get-S365User { [CmdletBinding()] Param ( [String] $Identity, [Switch] $All, [String] $Filter, [String[]] $Select = @("Id", "DisplayName", "UserPrincipalName", "Mail", "JobTitle", "Department", "AccountEnabled", "CreatedDateTime", "LastPasswordChangeDateTime", "SignInActivity", "UsageLocation", "Manager") ) try { $params = @{ }; if ($Select) { $params.Property = $Select }; if ($All) { Get-MgUser @params -All } elseif ($Filter) { Get-MgUser @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar } elseif ($Identity) { Get-MgUser @params -UserId $Identity } else { Write-Warning "Especifique -Identity, -Filter ou -All." } } catch { Write-Error "Erro ao buscar usuário(s): $_" } }
+# --- Elas não precisam ser modificadas, pois Invoke-FunctionWithParams ---
+# --- vai interceptar a chamada em modo de teste. ---
+Function Get-S365User { [CmdletBinding()] Param ( [String] $Identity, [Switch] $All, [String] $Filter, [String[]] $Select = @("Id", "DisplayName", "UserPrincipalName", "Mail", "JobTitle", "Department", "AccountEnabled", "CreatedDateTime", "LastPasswordChangeDateTime", "SignInActivity", "UsageLocation", "Manager") ) try { $params = @{}; if ($Select) { $params.Property = $Select }; if ($All) { Get-MgUser @params -All } elseif ($Filter) { Get-MgUser @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar } elseif ($Identity) { Get-MgUser @params -UserId $Identity } else { Write-Warning "Especifique -Identity, -Filter ou -All." } } catch { Write-Error "Erro ao buscar usuário(s): $_" } }
 Function New-S365User { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName, [Parameter(Mandatory=$true)][String] $DisplayName, [Parameter(Mandatory=$true)][String] $MailNickname, [Parameter(Mandatory=$true)][System.Security.SecureString] $Password, [Parameter(Mandatory=$true)][String] $UsageLocation, [String] $GivenName, [String] $Surname, [String] $JobTitle, [String] $Department, [Switch] $ForceChangePasswordNextSignIn = $true, [Switch] $AccountEnabled = $true ) $params = @{ UserPrincipalName = $UserPrincipalName; DisplayName = $DisplayName; MailNickname = $MailNickname; PasswordProfile = @{ ForceChangePasswordNextSignIn = $ForceChangePasswordNextSignIn; Password = $Password }; AccountEnabled = $AccountEnabled; UsageLocation = $UsageLocation }; if ($GivenName) { $params.Add("GivenName", $GivenName) }; if ($Surname) { $params.Add("Surname", $Surname) }; if ($JobTitle) { $params.Add("JobTitle", $JobTitle) }; if ($Department) { $params.Add("Department", $Department) }; try { $newUser = New-MgUser -BodyParameter $params; Write-Host "Usuário '$UserPrincipalName' (ID: $($newUser.Id)) criado com sucesso." -ForegroundColor Green; return $newUser } catch { Write-Error "Erro ao criar usuário: $_" } }
 Function Set-S365User { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName, [String] $JobTitle, [String] $Department, [String] $OfficeLocation, [String] $MobilePhone, [String] $ManagerUPN, [String] $UsageLocation, [Switch] $EnableAccount, [Switch] $DisableAccount ) $params = @{}; if ($JobTitle) { $params.Add("JobTitle", $JobTitle) }; if ($Department) { $params.Add("Department", $Department) }; if ($OfficeLocation) { $params.Add("OfficeLocation", $OfficeLocation) }; if ($MobilePhone) { $params.Add("MobilePhone", $MobilePhone) }; if ($UsageLocation) { $params.Add("UsageLocation", $UsageLocation) }; if ($PSBoundParameters.ContainsKey('EnableAccount')) { $params.Add("AccountEnabled", $true) }; if ($PSBoundParameters.ContainsKey('DisableAccount')) { $params.Add("AccountEnabled", $false) }; try { if ($params.Count -gt 0) { Update-MgUser -UserId $UserPrincipalName -BodyParameter $params; Write-Host "Propriedades atualizadas para $UserPrincipalName." -ForegroundColor Green }; if ($ManagerUPN) { $manager = Get-S365User -Identity $ManagerUPN; if ($manager) { Set-MgUserManagerByRef -UserId $UserPrincipalName -AdditionalProperties @{"@odata.id" = "https://graph.microsoft.com/v1.0/users/$($manager.Id)"}; Write-Host "Gerente '$ManagerUPN' definido para $UserPrincipalName." -ForegroundColor Green } else { Write-Warning "Gerente '$ManagerUPN' não encontrado." } } } catch { Write-Error "Erro ao atualizar usuário '$UserPrincipalName': $_" } }
 Function Remove-S365User { [CmdletBinding(SupportsShouldProcess=$true, ConfirmImpact='High')] Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName ) try { if ($PSCmdlet.ShouldProcess($UserPrincipalName, "Remover Usuário")) { Remove-MgUser -UserId $UserPrincipalName; Write-Host "Usuário '$UserPrincipalName' movido para a lixeira." -ForegroundColor Green } } catch { Write-Error "Erro ao remover usuário '$UserPrincipalName': $_" } }
@@ -139,7 +177,7 @@ Function Get-S365MfaStatus { [CmdletBinding()] Param ([Parameter(Mandatory=$true
 Function Get-S365AvailableSkus { [CmdletBinding()] Param () try { Get-MgSubscribedSku | Select-Object SkuId, SkuPartNumber, ConsumedUnits, PrepaidUnits } catch { Write-Error "Erro ao buscar SKUs: $_" } }
 Function Get-S365UserLicense { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName ) try { Get-MgUserLicenseDetail -UserId $UserPrincipalName | Select-Object SkuPartNumber, ServicePlans } catch { Write-Error "Erro ao buscar licenças de '$UserPrincipalName': $_" } }
 Function Set-S365UserLicense { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $UserPrincipalName, [String[]] $AddSkuIds, [String[]] $RemoveSkuIds ) try { $user = Get-S365User -Identity $UserPrincipalName -Select UsageLocation; if (-not $user.UsageLocation) { Write-Error "Usuário '$UserPrincipalName' não tem UsageLocation."; return }; $addLicensesObject = @(); if ($AddSkuIds) { $addLicensesObject = $AddSkuIds | ForEach-Object { @{ SkuId = $_ } } }; $params = @{ UserId = $UserPrincipalName; AddLicenses = $addLicensesObject; RemoveLicenses = @($RemoveSkuIds) }; Set-MgUserLicense @params; Write-Host "Licenças atualizadas para '$UserPrincipalName'." -ForegroundColor Green } catch { Write-Error "Erro ao atualizar licenças para '$UserPrincipalName': $_" } }
-Function Get-S365Group { [CmdletBinding()] Param ( [String] $Identity, [Switch] $All, [String] $Filter, [String[]] $Select = @("Id", "DisplayName", "Mail", "GroupTypes", "SecurityEnabled", "MailEnabled", "Visibility", "Description") ) try { $params = @{ }; if ($Select) { $params.Property = $Select }; if ($All) { Get-MgGroup @params -All } elseif ($Filter) { Get-MgGroup @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar } elseif ($Identity) { Get-MgGroup @params -GroupId $Identity } else { Write-Warning "Especifique -Identity, -Filter ou -All." } } catch { Write-Error "Erro ao buscar grupo(s): $_" } }
+Function Get-S365Group { [CmdletBinding()] Param ( [String] $Identity, [Switch] $All, [String] $Filter, [String[]] $Select = @("Id", "DisplayName", "Mail", "GroupTypes", "SecurityEnabled", "MailEnabled", "Visibility", "Description") ) try { $params = @{}; if ($Select) { $params.Property = $Select }; if ($All) { Get-MgGroup @params -All } elseif ($Filter) { Get-MgGroup @params -Filter $Filter -ConsistencyLevel eventual -CountVariable countVar } elseif ($Identity) { Get-MgGroup @params -GroupId $Identity } else { Write-Warning "Especifique -Identity, -Filter ou -All." } } catch { Write-Error "Erro ao buscar grupo(s): $_" } }
 Function Get-S365GroupMember { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $GroupId ) try { Get-MgGroupMember -GroupId $GroupId -All | Select-Object Id, DisplayName, UserPrincipalName, Mail } catch { Write-Error "Erro ao buscar membros do grupo '$GroupId': $_" } }
 Function Add-S365GroupMember { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $GroupId, [Parameter(Mandatory=$true)][String] $UserPrincipalName ) try { $user = Get-S365User -Identity $UserPrincipalName; New-MgGroupMember -GroupId $GroupId -DirectoryObjectId $user.Id; Write-Host "Usuário '$UserPrincipalName' adicionado ao grupo '$GroupId'." -ForegroundColor Green } catch { Write-Error "Erro ao adicionar membro '$UserPrincipalName' ao grupo '$GroupId': $_" } }
 Function Remove-S365GroupMember { [CmdletBinding(SupportsShouldProcess=$true)] Param ( [Parameter(Mandatory=$true)][String] $GroupId, [Parameter(Mandatory=$true)][String] $UserPrincipalName ) try { $user = Get-S365User -Identity $UserPrincipalName; if ($PSCmdlet.ShouldProcess("$UserPrincipalName from $GroupId", "Remover Membro")) { Remove-MgGroupMemberByRef -GroupId $GroupId -DirectoryObjectId $user.Id; Write-Host "Usuário '$UserPrincipalName' removido do grupo '$GroupId'." -ForegroundColor Green } } catch { Write-Error "Erro ao remover membro '$UserPrincipalName' do grupo '$GroupId': $_" } }
@@ -161,9 +199,6 @@ Function Add-S365MailboxPermission { [CmdletBinding()] Param ( [Parameter(Mandat
 Function Remove-S365MailboxPermission { [CmdletBinding(SupportsShouldProcess=$true)] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $User, [Parameter(Mandatory=$true)][ValidateSet("FullAccess", "ExternalAccount", "DeleteItem", "ReadPermission", "ChangePermission", "ChangeOwner")]$AccessRights = "FullAccess" ) try { if ($PSCmdlet.ShouldProcess("$User on $Identity", "Remover Permissão ($AccessRights)")) { Remove-MailboxPermission -Identity $Identity -User $User -AccessRights $AccessRights -InheritanceType All -Confirm:$false; Write-Host "Permissão '$AccessRights' removida de '$User' em '$Identity'." -ForegroundColor Green } } catch { Write-Error "Erro ao remover permissão '$AccessRights' de '$User' em '$Identity': $_" } }
 Function Add-S365RecipientPermission { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $Trustee, [Parameter(Mandatory=$true)][ValidateSet("SendAs", "SendOnBehalf")]$AccessRights = "SendAs" ) try { if ($AccessRights -eq "SendAs") { Add-RecipientPermission -Identity $Identity -Trustee $Trustee -AccessRights SendAs; Write-Host "'SendAs' concedida a '$Trustee' em '$Identity'." -ForegroundColor Green } elseif ($AccessRights -eq "SendOnBehalf") { Set-Mailbox -Identity $Identity -GrantSendOnBehalfTo @{Add="$Trustee"}; Write-Host "'SendOnBehalf' concedida a '$Trustee' em '$Identity'." -ForegroundColor Green } } catch { Write-Error "Erro ao adicionar permissão '$AccessRights': $_" } }
 Function Remove-S365RecipientPermission { [CmdletBinding(SupportsShouldProcess=$true)] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $Trustee, [Parameter(Mandatory=$true)][ValidateSet("SendAs", "SendOnBehalf")]$AccessRights = "SendAs" ) try { if ($PSCmdlet.ShouldProcess("$Trustee on $Identity", "Remover Permissão ($AccessRights)")) { if ($AccessRights -eq "SendAs") { Remove-RecipientPermission -Identity $Identity -Trustee $Trustee -AccessRights SendAs -Confirm:$false; Write-Host "'SendAs' removida de '$Trustee' em '$Identity'." -ForegroundColor Green } elseif ($AccessRights -eq "SendOnBehalf") { Set-Mailbox -Identity $Identity -GrantSendOnBehalfTo @{Remove="$Trustee"}; Write-Host "'SendOnBehalf' removida de '$Trustee' em '$Identity'." -ForegroundColor Green } } } catch { Write-Error "Erro ao remover permissão '$AccessRights': $_" } }
-Function Get-S365MailboxFolderPermission { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $Identity, [String] $FolderPath = "\Calendário" ) try { $calendarPath = $null; try { $calendarPath = (Get-MailboxFolderStatistics -Identity $Identity -FolderScope Calendar | Select-Object -First 1).FolderPath } catch { Write-Warning "Não foi possível detectar a pasta Calendário automaticamente. Usando '$FolderPath'." }; $finalPath = if($calendarPath) { $calendarPath } else { $FolderPath }; $IdentityPath = $Identity + ":" + $finalPath; Get-MailboxFolderPermission -Identity $IdentityPath } catch { Write-Error "Erro ao buscar permissões da pasta '$finalPath' para '$Identity': $_" } }
-Function Add-S365MailboxFolderPermission { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $User, [Parameter(Mandatory=$true)][ValidateSet("Owner", "PublishingEditor", "Editor", "PublishingAuthor", "Author", "NoneditingAuthor", "Reviewer", "Contributor", "AvailabilityOnly", "LimitedDetails")]$AccessRights, [String] $FolderPath = "\Calendário" ) try { $IdentityPath = $Identity + ":" + $FolderPath; Add-MailboxFolderPermission -Identity $IdentityPath -User $User -AccessRights $AccessRights; Write-Host "Permissão '$AccessRights' concedida a '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green } catch { $IdentityPath = $Identity + ":" + $FolderPath; Write-Error "Erro ao adicionar permissão '$AccessRights' a '$User' em '$IdentityPath': $_" } }
-Function Remove-S365MailboxFolderPermission { [CmdletBinding(SupportsShouldProcess=$true)] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $User, [String] $FolderPath = "\Calendário" ) try { $IdentityPath = $Identity + ":" + $FolderPath; if ($PSCmdlet.ShouldProcess("$User on $IdentityPath", "Remover Permissão de Pasta")) { Remove-MailboxFolderPermission -Identity $IdentityPath -User $User -Confirm:$false; Write-Host "Permissões removidas de '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green } } catch { $IdentityPath = $Identity + ":" + $FolderPath; Write-Error "Erro ao remover permissão de '$User' em '$IdentityPath': $_" } }
 Function Get-S365DistributionGroup { [CmdletBinding()] Param ( [String] $Identity, [Switch] $All ) try { if ($All) { Get-DistributionGroup -ResultSize Unlimited } elseif ($Identity) { Get-DistributionGroup -Identity $Identity } else { Get-DistributionGroup } } catch { Write-Error "Erro ao buscar grupo(s) de distribuição: $_" } }
 Function Get-S365DistributionGroupMember { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $Identity ) try { Get-DistributionGroupMember -Identity $Identity -ResultSize Unlimited } catch { Write-Error "Erro ao buscar membros do grupo '$Identity': $_" } }
 Function Add-S365DistributionGroupMember { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $Member ) try { Add-DistributionGroupMember -Identity $Identity -Member $Member; Write-Host "Membro '$Member' adicionado ao grupo '$Identity'." -ForegroundColor Green } catch { Write-Error "Erro ao adicionar membro '$Member' ao grupo '$Identity': $_" } }
@@ -178,6 +213,52 @@ Function Get-S365SignInActivity { [CmdletBinding()] Param ( [Parameter(Mandatory
 Function Get-S365LastLogonTime { [CmdletBinding()] Param ( [Switch] $All, [Int32] $DaysInactive = 90 ) try { Write-Host "Buscando estatísticas (pode demorar)..." -ForegroundColor Yellow; $mailboxes = Get-Mailbox -ResultSize Unlimited -Filter {RecipientTypeDetails -ne "DiscoveryMailbox"}; $i = 0; $total = $mailboxes.Count; $stats = $mailboxes | ForEach-Object { $i++; Write-Progress -Activity "Buscando Estatísticas" -Status "Processando: $($_.UserPrincipalName) ($i de $total)" -PercentComplete ($i / $total * 100); Get-MailboxStatistics -Identity $_.UserPrincipalName -ErrorAction SilentlyContinue }; if ($All) { $stats | Select-Object DisplayName, UserPrincipalName, LastLogonTime, TotalItemSize } else { $threshold = (Get-Date).AddDays(-$DaysInactive); Write-Host "Filtrando por $DaysInactive dias inativos..."; $stats | Where-Object { $_.LastLogonTime -lt $threshold -or $_.LastLogonTime -eq $null } | Select-Object DisplayName, UserPrincipalName, LastLogonTime, TotalItemSize } } catch { Write-Error "Erro ao buscar último logon: $_" } }
 Function Search-S365AuditLog { [CmdletBinding()] Param ( [Parameter(Mandatory=$true)][DateTime] $StartDate, [Parameter(Mandatory=$true)][DateTime] $EndDate, [String] $UserIds, [String] $Operations, [Int32] $ResultSize = 1000 ) Write-Host "Pesquisando Log de Auditoria (pode demorar)..." -ForegroundColor Yellow; try { Search-UnifiedAuditLog -StartDate $StartDate -EndDate $EndDate -UserIds $UserIds -Operations $Operations -ResultSize $ResultSize | Select-Object CreationDate, UserIds, Operations, AuditData | Sort-Object CreationDate -Descending } catch { Write-Error "Erro ao pesquisar o log de auditoria: $_" } }
 
+Function Get-S365MailboxFolderPermission {
+    [CmdletBinding()]
+    Param ( [Parameter(Mandatory=$true)][String] $Identity, [String] $FolderPath = "\Calendário" )
+    try {
+        $calendarPath = $null;
+        try {
+            $calendarPath = (Get-MailboxFolderStatistics -Identity $Identity -FolderScope Calendar | Select-Object -First 1).FolderPath
+        } catch {
+            Write-Warning "Não foi possível detectar a pasta Calendário automaticamente. Usando '$FolderPath'."
+        }
+        $finalPath = if ($calendarPath) { $calendarPath } else { $FolderPath }
+        $IdentityPath = "${Identity}:${finalPath}"
+        Get-MailboxFolderPermission -Identity $IdentityPath
+    } catch {
+        $finalPath = if ($calendarPath) { $calendarPath } else { $FolderPath }
+        Write-Error "Erro ao buscar permissões da pasta '$finalPath' para '$Identity': $_"
+    }
+}
+
+Function Add-S365MailboxFolderPermission {
+    [CmdletBinding()]
+    Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $User, [Parameter(Mandatory=$true)][ValidateSet("Owner", "PublishingEditor", "Editor", "PublishingAuthor", "Author", "NoneditingAuthor", "Reviewer", "Contributor", "AvailabilityOnly", "LimitedDetails")]$AccessRights, [String] $FolderPath = "\Calendário" )
+    try {
+        $IdentityPath = "${Identity}:${FolderPath}"
+        Add-MailboxFolderPermission -Identity $IdentityPath -User $User -AccessRights $AccessRights;
+        Write-Host "Permissão '$AccessRights' concedida a '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
+    } catch {
+        $IdentityPath = "${Identity}:${FolderPath}"
+        Write-Error "Erro ao adicionar permissão '$AccessRights' a '$User' em '$IdentityPath': $_"
+    }
+}
+
+Function Remove-S365MailboxFolderPermission {
+    [CmdletBinding(SupportsShouldProcess=$true)]
+    Param ( [Parameter(Mandatory=$true)][String] $Identity, [Parameter(Mandatory=$true)][String] $User, [String] $FolderPath = "\Calendário" )
+    try {
+        $IdentityPath = "${Identity}:${FolderPath}"
+        if ($PSCmdlet.ShouldProcess("$User on $IdentityPath", "Remover Permissão de Pasta")) {
+            Remove-MailboxFolderPermission -Identity $IdentityPath -User $User -Confirm:$false;
+            Write-Host "Permissões removidas de '$User' na pasta '$FolderPath' de '$Identity'." -ForegroundColor Green
+        }
+    } catch {
+        $IdentityPath = "${Identity}:${FolderPath}"
+        Write-Error "Erro ao remover permissão de '$User' em '$IdentityPath': $_"
+    }
+}
 
 # =========================================================================
 #                    TUI HELPER FUNCTIONS
@@ -211,7 +292,7 @@ Function Get-InteractiveParams {
                 $response = Read-Host "$prompt (S/N)"
                 if ($response -eq '$$') { return $null }
                 if ($response -match '^[SsYy1]') { $params.Add($param.Name, $true) }
-                break # Sai do while
+                break
             } elseif ($paramType.Name -eq 'SecureString') {
                 $value = Read-Host "$prompt" -AsSecureString
                 if ($value -eq '$$') { return $null }
@@ -220,8 +301,8 @@ Function Get-InteractiveParams {
                 if ($value -eq '$$') { return $null }
             }
 
-            if ($value -ne $null -and $value.Length -gt 0) {
-                try {
+            if ($value -ne $null -and ($value -isnot [System.Security.SecureString] -or $value.Length -gt 0)) {
+                 try {
                     if ($paramType.Name -eq 'String[]') {
                         $params.Add($param.Name, ($value -split ',' | ForEach-Object { $_.Trim() }))
                     } elseif ($paramType.Name -eq 'DateTime') {
@@ -233,16 +314,14 @@ Function Get-InteractiveParams {
                     } else {
                         $params.Add($param.Name, $value)
                     }
-                    break # Sai do while, valor válido
+                    break
                 } catch {
                     Write-Warning "Entrada inválida. $_.Exception.Message"
-                    # Continua no loop para pedir novamente
                 }
             } elseif ($isMandatory) {
                 Write-Warning "Parâmetro obrigatório '$($param.Name)' não pode ser vazio."
-                # Continua no loop para pedir novamente
             } else {
-                break # Sai do while, opcional vazio
+                break
             }
         }
     }
@@ -254,15 +333,56 @@ Function Invoke-FunctionWithParams {
         [string]$FunctionName
     )
     try {
-        $funcInfo = Get-Command $FunctionName -ErrorAction Stop
-        $parameters = Get-InteractiveParams -FunctionInfo $funcInfo
+        # Lógica de Teste/Produção movida para cá
+        if ($Global:TestMode -and $FunctionName -ne "Connect-Super365Services" -and $FunctionName -ne "Disconnect-Super365Services") {
+            $funcInfo = Get-Command $FunctionName -ErrorAction Stop
+            $parameters = Get-InteractiveParams -FunctionInfo $funcInfo
+            if ($parameters -ne $null) {
+                Write-Host "`n--- MODO DE TESTE ---" -ForegroundColor Gray
+                Write-Host "Função a ser chamada: $FunctionName" -ForegroundColor Gray
+                Write-Host "Parâmetros recebidos:" -ForegroundColor Gray
+                $parameters | Format-Table | Out-String | Write-Host -ForegroundColor Gray
+                Write-Host "Nenhuma ação real executada." -ForegroundColor Yellow
+                Write-Host "--- FIM MODO DE TESTE ---" -ForegroundColor Gray
+            } else {
+                Write-Host "`nOperação '$FunctionName' cancelada." -ForegroundColor Yellow
+            }
 
-        if ($parameters -ne $null) {
-            Write-Host "`nExecutando $FunctionName..." -ForegroundColor Cyan
-            & $FunctionName @parameters | Out-Host # Usar Out-Host para garantir a exibição no console
-            Write-Host "`nExecução de $FunctionName concluída." -ForegroundColor Green
-        } else {
-             Write-Host "`nOperação '$FunctionName' cancelada." -ForegroundColor Yellow
+        } elseif ($FunctionName -eq "Connect-Super365Services" -or $FunctionName -eq "Disconnect-Super365Services") {
+            # Funções de conexão/desconexão sempre rodam (com sua própria lógica de teste interna)
+             $funcInfo = Get-Command $FunctionName -ErrorAction Stop
+             $parameters = Get-InteractiveParams -FunctionInfo $funcInfo
+             if ($parameters -ne $null) { & $FunctionName @parameters } else { Write-Host "`nOperação '$FunctionName' cancelada." -ForegroundColor Yellow }
+
+        } else { # MODO DE PRODUÇÃO (ou funções não interceptadas)
+            # Verifica se estamos conectados antes de tentar executar a maioria das funções
+            if (-not ($Global:IsExchangeConnected -or $Global:IsGraphConnected)) {
+                 Write-Warning "Você precisa conectar aos serviços primeiro! (Menu Conexão -> 1)"
+                 Read-Host "`nPressione Enter para continuar..."
+                 return
+            }
+            $cmd = Get-Command $FunctionName
+            if ($cmd.ModuleName -eq 'ExchangeOnlineManagement' -and -not $Global:IsExchangeConnected) {
+                 Write-Warning "Você precisa estar conectado ao Exchange Online para usar '$FunctionName'."
+                 Read-Host "`nPressione Enter para continuar..."
+                 return
+            }
+             if ($cmd.ModuleName -like 'Microsoft.Graph*' -and -not $Global:IsGraphConnected) {
+                 Write-Warning "Você precisa estar conectado ao Microsoft Graph para usar '$FunctionName'."
+                 Read-Host "`nPressione Enter para continuar..."
+                 return
+            }
+
+            $funcInfo = Get-Command $FunctionName -ErrorAction Stop
+            $parameters = Get-InteractiveParams -FunctionInfo $funcInfo
+
+            if ($parameters -ne $null) {
+                Write-Host "`nExecutando $FunctionName..." -ForegroundColor Cyan
+                & $FunctionName @parameters | Out-Host
+                Write-Host "`nExecução de $FunctionName concluída." -ForegroundColor Green
+            } else {
+                 Write-Host "`nOperação '$FunctionName' cancelada." -ForegroundColor Yellow
+            }
         }
     } catch {
         Write-Error "Erro ao preparar ou executar $FunctionName: $_"
@@ -275,9 +395,10 @@ Function Invoke-FunctionWithParams {
 #                    TUI DISPLAY FUNCTIONS
 # =========================================================================
 Function Show-Header {
+    $mode = if ($Global:TestMode) { "[MODO DE TESTE]" } else { "[MODO DE PRODUÇÃO]" }
     $exchStatus = if ($Global:IsExchangeConnected) { "(Conectado)" } else { "(Desconectado)" }
     $graphStatus = if ($Global:IsGraphConnected) { "(Conectado como $($Global:GraphUser))" } else { "(Desconectado)" }
-    Write-Host "====================== SuperAdmin365 TUI ======================" -ForegroundColor Cyan
+    Write-Host "====================== SuperAdmin365 TUI $mode ======================" -ForegroundColor (if($Global:TestMode){"Yellow"}else{"Cyan"})
     Write-Host " Exchange: " -NoNewline; Write-Host $exchStatus -ForegroundColor (if ($Global:IsExchangeConnected) { "Green" } else { "Red" }) -NoNewline
     Write-Host " | Graph: " -NoNewline; Write-Host $graphStatus -ForegroundColor (if ($Global:IsGraphConnected) { "Green" } else { "Red" })
     Write-Host "---------------------------------------------------------------"
@@ -399,6 +520,8 @@ Function Show-LicenseAuditMenu {
 # =========================================================================
 
 Function Start-SuperAdminTUI {
+    # Corrige caracteres estranhos que podem aparecer no console com iex
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     $menuStack = New-Object System.Collections.Stack
     $currentMenu = "Main"
 
@@ -420,7 +543,7 @@ Function Start-SuperAdminTUI {
             if ($menuStack.Count -gt 0) {
                 $currentMenu = $menuStack.Pop()
             } else {
-                $currentMenu = "Main" # Garante que volte ao principal se a pilha estiver vazia
+                $currentMenu = "Main"
             }
             continue
         }
@@ -428,7 +551,7 @@ Function Start-SuperAdminTUI {
             if ($currentMenu -eq "Main") {
                 Write-Host "Saindo..." -ForegroundColor Yellow
                 Disconnect-Super365Services -ErrorAction SilentlyContinue
-                break # Sai do loop while
+                break
             } else {
                  Write-Host "Use 'B' para voltar ou 'Q' no menu principal para sair." -ForegroundColor Yellow
                  Start-Sleep 2
@@ -446,14 +569,14 @@ Function Start-SuperAdminTUI {
                         "3" { $menuStack.Push($currentMenu); $currentMenu = "Group" }
                         "4" { $menuStack.Push($currentMenu); $currentMenu = "Exchange" }
                         "5" { $menuStack.Push($currentMenu); $currentMenu = "LicenseAudit" }
-                        default { Write-Warning "Seleção inválida." }
+                        default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                     }
                 }
                 "Connection" {
                     switch ($selection) {
                         "1" { Invoke-FunctionWithParams -FunctionName "Connect-Super365Services" }
                         "2" { Invoke-FunctionWithParams -FunctionName "Disconnect-Super365Services" }
-                        default { Write-Warning "Seleção inválida." }
+                        default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                     }
                 }
                 "User" {
@@ -469,7 +592,7 @@ Function Start-SuperAdminTUI {
                         "9" { Invoke-FunctionWithParams -FunctionName "Get-S365UserDirectReports" }
                         "10" { Invoke-FunctionWithParams -FunctionName "Get-S365MfaStatus" }
                         "11" { Invoke-FunctionWithParams -FunctionName "Get-S365SignInActivity" }
-                        default { Write-Warning "Seleção inválida." }
+                        default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                     }
                 }
                 "Group" {
@@ -486,7 +609,7 @@ Function Start-SuperAdminTUI {
                         "10" { Invoke-FunctionWithParams -FunctionName "Get-S365TeamChannel" }
                         "11" { Invoke-FunctionWithParams -FunctionName "Add-S365TeamMember" }
                         "12" { Invoke-FunctionWithParams -FunctionName "Remove-S365TeamMember" }
-                        default { Write-Warning "Seleção inválida." }
+                        default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                     }
                 }
                 "Exchange" {
@@ -514,7 +637,7 @@ Function Start-SuperAdminTUI {
                         "21" { Invoke-FunctionWithParams -FunctionName "Start-S365MessageTrace" }
                         "22" { Invoke-FunctionWithParams -FunctionName "Start-S365HistoricalMessageTrace" }
                         "23" { Invoke-FunctionWithParams -FunctionName "Get-S365HistoricalMessageTrace" }
-                        default { Write-Warning "Seleção inválida." }
+                        default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                     }
                 }
                 "LicenseAudit" {
@@ -524,7 +647,7 @@ Function Start-SuperAdminTUI {
                         "3" { Invoke-FunctionWithParams -FunctionName "Set-S365UserLicense" }
                         "4" { Invoke-FunctionWithParams -FunctionName "Get-S365LastLogonTime" }
                         "5" { Invoke-FunctionWithParams -FunctionName "Search-S365AuditLog" }
-                         default { Write-Warning "Seleção inválida." }
+                         default { Write-Warning "Seleção inválida."; Start-Sleep 1 }
                      }
                 }
             }
@@ -533,18 +656,11 @@ Function Start-SuperAdminTUI {
              Read-Host "`nPressione Enter para continuar..."
         }
 
-        # Pausa para ver o resultado da ação (exceto se for apenas navegação)
-        if ($selection -notmatch '^[bBqQ]$' -and ($currentMenu -ne "Main" -or $selection -notin @("1","2","3","4","5"))) {
-            # A pausa já está dentro de Invoke-FunctionWithParams
-            # Mas se a seleção for inválida, damos uma pausa aqui.
-            if($LASTEXITCODE -ne 0 -and -not $?) { Start-Sleep 1 }
-        }
-
     } # Fim do While
 }
 
 # =========================================================================
 #                    START TUI
 # =========================================================================
-Write-Host "`nCarregando SuperAdmin365 TUI..." -ForegroundColor Magenta
+Write-Host "`nCarregando SuperAdmin365 TUI (v4.2 - Test Mode Enabled: $Global:TestMode)..." -ForegroundColor Magenta
 Start-SuperAdminTUI
